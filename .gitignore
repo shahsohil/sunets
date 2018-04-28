@@ -1,2 +1,3 @@
 *.pth.tar
 *.pyc
+*.DS_Store

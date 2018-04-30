@@ -10,7 +10,7 @@ If you use this code in your research, please cite our paper.
 @article{shah2018sunets,
 	author    = {Sohil Atul Shah and Pallabi Ghosh and Larry S. Davis and Tom Goldstein},
 	title     = {Stacked U-Nets:A No-Frills Approach to Natural Image Segmentation},
-	journal   = {arXiv:1804.XXXX},
+	journal   = {arXiv:1804.10343},
 	year      = {2018},
 }
 ```

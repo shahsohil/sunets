@@ -1,7 +1,7 @@
 # Stacked U-Nets (SUNets) #
 
 ## Introduction ##
-This is a PyTorch implementation for training classification and semantic segmentation task using Stacked U-Nets models presented in the following paper ([paper](http://arxiv.org/abs/1804.XXXX)):
+This is a PyTorch implementation for training classification and semantic segmentation task using Stacked U-Nets models presented in the following paper ([paper](https://arxiv.org/abs/1804.10343)):
 
 Sohil Shah, Pallabi Ghosh, Larry S. Davis and Tom Goldstein. Stacked U-Nets:A No-Frills Approach to Natural Image Segmentation.
 

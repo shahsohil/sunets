@@ -3,6 +3,7 @@ import os
 import random
 import shutil
 import time
+import numpy as np
 
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
@@ -26,11 +27,11 @@ model_names = sorted(name for name in modelss.__dict__
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('data', metavar='DIR',
                     help='path to dataset')
-parser.add_argument('--arch', '-a', metavar='ARCH', default='stackedunet128',
+parser.add_argument('--arch', '-a', metavar='ARCH', default='sunet7128',
                     choices=model_names,
                     help='model architecture: ' +
                         ' | '.join(model_names) +
-                        ' sunet64, sunet128, (default: sunet7128)')
+                        ' | sunet64 | sunet128 | sunet7128 (default: sunet7128)')
 parser.add_argument('-j', '--workers', default=7, type=int, metavar='N',
                     help='number of data loading workers (default: 8)')
 parser.add_argument('--epochs', default=100, type=int, metavar='N',

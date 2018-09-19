@@ -1,7 +1,8 @@
+import torch.nn as nn
 from torch.nn import init
 
-from ptsemseg.models.resnet import *
-from ptsemseg.models.sunet import *
+from resnet import *
+from sunet import *
 
 def init_params(net):
     '''Init layer parameters.'''

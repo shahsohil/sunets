@@ -5,7 +5,7 @@ from torch.autograd import Variable
 from torchvision import models
 import os
 from itertools import chain
-from ptsemseg.loss import cross_entropy2d, prediction_stat, prediction_stat_confusion_matrix
+from ..loss import cross_entropy2d, prediction_stat, prediction_stat_confusion_matrix
 
 checkpoint = 'pretrained/ResNet'
 res18_path = os.path.join(checkpoint, 'resnet18-5c106cde.pth')

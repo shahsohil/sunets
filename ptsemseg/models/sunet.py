@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
-from ptsemseg.loss import cross_entropy2d, prediction_stat, prediction_stat_confusion_matrix
+from ..loss import cross_entropy2d, prediction_stat, prediction_stat_confusion_matrix
 
 from torch.autograd import Variable
 

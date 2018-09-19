@@ -37,7 +37,7 @@ def test(args):
     correct_len=np.zeros(n_classes, dtype=float)
 
     # Setup Model
-    model = torch.nn.DataParallel(get_model(args.arch, n_classes, ignore_index=testdata.ignore_index))
+    model = torch.nn.DataParallel(get_model(args.arch, n_classes, ignore_index=testdata.ignore_index, output_stride=args.ost))
     model_name = args.model_path.split('.')
     checkpoint_name = model_name[0] + '_optimizer.pkl'
     checkpoint = torch.load(checkpoint_name)
@@ -166,5 +166,7 @@ if __name__ == '__main__':
                         help='Height of the Crop size')
     parser.add_argument('--img_cols', nargs='?', type=int, default=512,
                         help='Width of the Crop size')
+    parser.add_argument('--ost', nargs='?', type=str, default='16',
+                        help='Output stride to use [\'32, 16, 8 etc\']')
     args = parser.parse_args()
     test(args)

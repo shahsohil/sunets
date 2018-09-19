@@ -32,7 +32,7 @@ def test(args):
     size_transform_img = [Scale(int(base_size*i)) for i in scales]
 
     # Setup Model
-    model = torch.nn.DataParallel(get_model(args.arch, n_classes, ignore_index=testdata.ignore_index))
+    model = torch.nn.DataParallel(get_model(args.arch, n_classes, ignore_index=testdata.ignore_index, output_stride=args.ost))
     model_name = args.model_path.split('.')
     checkpoint_name = model_name[0] + '_optimizer.pkl'
     checkpoint = torch.load(checkpoint_name)
@@ -147,5 +147,7 @@ if __name__ == '__main__':
                         help='Trained with external data (coco) ?')
     parser.add_argument('--split', type=str, default='val',
                         help='val or test split')
+    parser.add_argument('--ost', nargs='?', type=str, default='16',
+                        help='Output stride to use [\'32, 16, 8 etc\']')
     args = parser.parse_args()
     test(args)

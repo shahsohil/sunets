@@ -113,7 +113,7 @@ python train_seg.py [-h] [--arch [ARCH]] [--model_path MODEL_PATH]
 ```
 For example, one can start fine-tuning on pascal VOC2012 data using
 ```angular2html
-python train.py --arch sunet7128 --dataset sbd --batch_size 22 --iter_size 1 --n_epoch 90 --l_rate 0.0002 --momentum 0.95 --wd 1e-4 --optim SGD --img_rows 512 --img_cols 512 --ost 16
+python train_seg.py --arch sunet7128 --dataset sbd --batch_size 22 --iter_size 1 --n_epoch 90 --l_rate 0.0002 --momentum 0.95 --wd 1e-4 --optim SGD --img_rows 512 --img_cols 512 --ost 16
 ```
 
 **To validate the model at multiple scales:**

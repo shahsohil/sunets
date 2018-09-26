@@ -10,9 +10,9 @@ from ..loss import cross_entropy2d, prediction_stat, prediction_stat_confusion_m
 from torch.autograd import Variable
 
 checkpoint = 'pretrained/SUNets'
-sunet64_path = os.path.join(checkpoint, 'checkpoint_64_2441_residual.pth.tar')
-sunet128_path = os.path.join(checkpoint, 'checkpoint_128_2441_residual.pth.tar')
-sunet7128_path = os.path.join(checkpoint, 'checkpoint_128_2771_residual.pth.tar')
+sunet64_path = os.path.join(os.path.dirname(__file__), checkpoint, 'checkpoint_64_2441_residual.pth.tar')
+sunet128_path = os.path.join(os.path.dirname(__file__), checkpoint, 'checkpoint_128_2441_residual.pth.tar')
+sunet7128_path = os.path.join(os.path.dirname(__file__), checkpoint, 'checkpoint_128_2771_residual.pth.tar')
 
 mom_bn = 0.01
 output_stride = {'32':3, '16':2, '8':1}
@@ -242,29 +242,37 @@ class d_sunet64(nn.Module):
             if 'bn' in n:
                 m.momentum = mom_bn
 
-        self.final = nn.Sequential(
-            nn.Conv2d(1024, num_classes, kernel_size=1)
-        )
+        # hack needed as batchnorm modules were not named as bn in residual block
+        for n, m in self.features.residual1.conv.named_modules():
+            if '2' in n:
+                m.momentum = mom_bn
+
+        self.final = nn.Sequential(OrderedDict([
+            ('conv1', nn.Conv2d(1024, num_classes, kernel_size=1)),
+        ]))
 
         self.mceloss = cross_entropy2d(ignore=ignore_index, size_average=False, weight=weight)
 
-    def forward(self, x, labels, th=1.0):
+    def forward(self, x, labels=None, th=1.0):
         x_size = x.size()
         x = self.features(x)
         x = F.relu(x, inplace=False)
         x = self.final(x)
-        x = F.upsample(x, x_size[2:], mode='bilinear')
+        x = F.interpolate(x, x_size[2:], mode='bilinear', align_corners=False)
 
-        losses, total_valid_pixel = self.mceloss(x, labels, th=th)
+        if labels is not None:
+            losses, total_valid_pixel = self.mceloss(x, labels, th=th)
 
-        classwise_pixel_acc, classwise_gtpixels, classwise_predpixels = prediction_stat([x], labels, self.num_classes)
+            classwise_pixel_acc, classwise_gtpixels, classwise_predpixels = prediction_stat([x], labels, self.num_classes)
 
-        # Need to perform this operation for MultiGPU
-        classwise_pixel_acc = Variable(torch.FloatTensor([classwise_pixel_acc]).cuda())
-        classwise_gtpixels = Variable(torch.FloatTensor([classwise_gtpixels]).cuda())
-        classwise_predpixels = Variable(torch.FloatTensor([classwise_predpixels]).cuda())
+            # Need to perform this operation for MultiGPU
+            classwise_pixel_acc = Variable(torch.FloatTensor([classwise_pixel_acc]).cuda())
+            classwise_gtpixels = Variable(torch.FloatTensor([classwise_gtpixels]).cuda())
+            classwise_predpixels = Variable(torch.FloatTensor([classwise_predpixels]).cuda())
 
-        return x, losses, classwise_pixel_acc, classwise_gtpixels, classwise_predpixels, total_valid_pixel
+            return x, losses, classwise_pixel_acc, classwise_gtpixels, classwise_predpixels, total_valid_pixel
+        else:
+            return x
 
 class d_sunet128(nn.Module):
     def __init__(self, num_classes, pretrained=True, ignore_index=-1, weight=None, output_stride='16'):
@@ -282,29 +290,37 @@ class d_sunet128(nn.Module):
             if 'bn' in n:
                 m.momentum = mom_bn
 
-        self.final = nn.Sequential(
-            nn.Conv2d(2048, num_classes, kernel_size=1)
-        )
+        # hack needed as batchnorm modules were not named as bn in residual block
+        for n, m in self.features.residual1.conv.named_modules():
+            if '2' in n:
+                m.momentum = mom_bn
+
+        self.final = nn.Sequential(OrderedDict([
+            ('conv1', nn.Conv2d(2048, num_classes, kernel_size=1)),
+        ]))
 
         self.mceloss = cross_entropy2d(ignore=ignore_index, size_average=False, weight=weight)
 
-    def forward(self, x, labels, th=1.0):
+    def forward(self, x, labels=None, th=1.0):
         x_size = x.size()
         x = self.features(x)
         x = F.relu(x, inplace=False)
         x = self.final(x)
-        x = F.upsample(x, x_size[2:], mode='bilinear')
+        x = F.interpolate(x, x_size[2:], mode='bilinear', align_corners=False)
 
-        losses, total_valid_pixel = self.mceloss(x, labels, th=th)
+        if labels is not None:
+            losses, total_valid_pixel = self.mceloss(x, labels, th=th)
 
-        classwise_pixel_acc, classwise_gtpixels, classwise_predpixels = prediction_stat([x], labels, self.num_classes)
+            classwise_pixel_acc, classwise_gtpixels, classwise_predpixels = prediction_stat([x], labels, self.num_classes)
 
-        # Need to perform this operation for MultiGPU
-        classwise_pixel_acc = Variable(torch.FloatTensor([classwise_pixel_acc]).cuda())
-        classwise_gtpixels = Variable(torch.FloatTensor([classwise_gtpixels]).cuda())
-        classwise_predpixels = Variable(torch.FloatTensor([classwise_predpixels]).cuda())
+            # Need to perform this operation for MultiGPU
+            classwise_pixel_acc = Variable(torch.FloatTensor([classwise_pixel_acc]).cuda())
+            classwise_gtpixels = Variable(torch.FloatTensor([classwise_gtpixels]).cuda())
+            classwise_predpixels = Variable(torch.FloatTensor([classwise_predpixels]).cuda())
 
-        return x, losses, classwise_pixel_acc, classwise_gtpixels, classwise_predpixels, total_valid_pixel
+            return x, losses, classwise_pixel_acc, classwise_gtpixels, classwise_predpixels, total_valid_pixel
+        else:
+            return x
 
 class d_sunet7128(nn.Module):
     def __init__(self, num_classes, pretrained=True, ignore_index=-1, weight=None, output_stride='16'):
@@ -322,9 +338,14 @@ class d_sunet7128(nn.Module):
             if 'bn' in n:
                 m.momentum = mom_bn
 
-        self.final = nn.Sequential(
-            nn.Conv2d(2304, num_classes, kernel_size=1)
-        )
+        # hack needed as batchnorm modules were not named as bn in residual block
+        for n, m in self.features.residual1.conv.named_modules():
+            if '2' in n:
+                m.momentum = mom_bn
+
+        self.final = nn.Sequential(OrderedDict([
+            ('conv1', nn.Conv2d(2304, num_classes, kernel_size=1))
+        ]))
 
         self.mceloss = cross_entropy2d(ignore=ignore_index, size_average=False, weight=weight)
 
@@ -333,7 +354,7 @@ class d_sunet7128(nn.Module):
         x = self.features(x)
         x = F.relu(x, inplace=False)
         x = self.final(x)
-        x = F.upsample(x, x_size[2:], mode='bilinear')
+        x = F.interpolate(x, x_size[2:], mode='bilinear', align_corners=False)
 
         if labels is not None:
             losses, total_valid_pixel = self.mceloss(x, labels, th=th)
@@ -366,15 +387,20 @@ class degrid_sunet7128(nn.Module):
             if 'bn' in n:
                 m.momentum = mom_bn
 
-        self.final = nn.Sequential(
-            nn.Conv2d(2304, 512, kernel_size=3, padding=2, dilation=2, bias=True),
-            nn.BatchNorm2d(512, momentum=mom_bn),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512, 512, kernel_size=3, padding=1, dilation=1, bias=True),
-            nn.BatchNorm2d(512, momentum=mom_bn),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(512, num_classes, kernel_size=1)
-        )
+        # hack needed as batchnorm modules were not named as bn in residual block
+        for n, m in self.features.residual1.conv.named_modules():
+            if '2' in n:
+                m.momentum = mom_bn
+
+        self.final = nn.Sequential(OrderedDict([
+            ('conv1', nn.Conv2d(2304, 512, kernel_size=3, padding=2, dilation=2, bias=True)),
+            ('bn1', nn.BatchNorm2d(512, momentum=mom_bn)),
+            ('relu1', nn.ReLU(inplace=True)),
+            ('conv2', nn.Conv2d(512, 512, kernel_size=3, padding=1, dilation=1, bias=True)),
+            ('bn2', nn.BatchNorm2d(512, momentum=mom_bn)),
+            ('relu2', nn.ReLU(inplace=True)),
+            ('conv3', nn.Conv2d(512, num_classes, kernel_size=1)),
+        ]))
 
         self.mceloss = cross_entropy2d(ignore=ignore_index, size_average=False, weight=weight)
 
@@ -383,7 +409,7 @@ class degrid_sunet7128(nn.Module):
         x = self.features(x)
         x = F.relu(x, inplace=False)
         x = self.final(x)
-        x = F.upsample(x, x_size[2:], mode='bilinear')
+        x = F.interpolate(x, x_size[2:], mode='bilinear', align_corners=False)
 
         if labels is not None:
             losses, total_valid_pixel = self.mceloss(x, labels, th=th)

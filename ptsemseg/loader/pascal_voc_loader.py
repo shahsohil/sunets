@@ -13,7 +13,7 @@ from tqdm import tqdm
 from torch.utils import data
 from torchvision.transforms import Compose, Normalize, ToTensor, Resize
 
-from ptsemseg import get_data_path
+from .. import get_data_path
 
 class pascalVOCLoader(data.Dataset):
     def __init__(self, root, split="train_aug", is_transform=False, img_size=512):
@@ -51,7 +51,7 @@ class pascalVOCLoader(data.Dataset):
         self.files['train_aug'] = list(set(self.files['trainval_aug']) - set(self.files['val']))
 
         # needed for extracting GT of sbd and pascal dataset
-        if not os.path.isdir(self.root + '/pre_encoded'):
+        if not os.path.isdir(self.root + '/combined_annotations'):
             self.setup(pre_encode=True)
         else:
             self.setup(pre_encode=False)
@@ -82,7 +82,7 @@ class pascalVOCLoader(data.Dataset):
     def readfile(self, img_name):
 
         img_path = self.voc_path + 'JPEGImages/' + img_name + '.jpg'
-        lbl_path = self.root + '/pre_encoded/' + img_name + '.png'
+        lbl_path = self.root + '/combined_annotations/' + img_name + '.png'
 
         img = Image.open(img_path).convert('RGB')
         lbl = Image.open(lbl_path).convert('P')
@@ -191,7 +191,7 @@ class pascalVOCLoader(data.Dataset):
 
     def setup(self, pre_encode=False):
 
-        target_path = self.root + '/pre_encoded/'
+        target_path = self.root + '/combined_annotations/'
         if not os.path.exists(target_path):
             os.makedirs(target_path)
 

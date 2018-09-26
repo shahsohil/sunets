@@ -1,14 +1,14 @@
 {
   "pascal":
   {
-    "data_path": "/vulcan/scratch/sohil/VOCdevkit/VOC2012/"
+    "data_path": "/home/sohilash/Data/VOC2012/VOCdevkit/VOC2012/"
   },
   "sbd":
   {
-    "data_path": "/vulcan/scratch/sohil/benchmark_RELEASE/"
+    "data_path": "/home/sohilash/Data/VOC2012/benchmark_RELEASE/"
   },
   "coco":
   {
-    "data_path": "/vulcan/scratch/sohil/datasets/coco/"
+    "data_path": "/home/sohilash/Data/coco/"
   }
 }

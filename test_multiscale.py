@@ -1,3 +1,4 @@
+import os
 import torch
 import argparse
 import numpy as np
@@ -25,6 +26,7 @@ def test(args):
 
     # (TODO): Choose the scale according to dataset requirements
     scales = [0.5, 0.75, 1.0, 1.25]
+    #scales = [1.0]
     base_size = min(testdata.img_size)
     crop_size = (args.img_rows, args.img_cols)
     stride = [0, 0]
@@ -35,6 +37,10 @@ def test(args):
     mask1_len=np.zeros(n_classes, dtype=float)
     mask2_len=np.zeros(n_classes, dtype=float)
     correct_len=np.zeros(n_classes, dtype=float)
+
+    folder_name = args.model_path.split('/')[0]
+    if not os.path.exists(folder_name+'/saved_test_images'):
+        os.makedirs(folder_name+'/saved_test_images')
 
     # Setup Model
     model = torch.nn.DataParallel(get_model(args.arch, n_classes, ignore_index=testdata.ignore_index, output_stride=args.ost))
@@ -109,7 +115,7 @@ def test(args):
                     prob = soft(prob.view(-1, *prob.size()))
 
                     # Place the score in the proper position
-                    datascale[:, y1:y2, x1:x2] += prob.data
+                    datascale[:, y1:y2, x1:x2] += torch.squeeze(prob.data)
                     countscale[:, y1:y2, x1:x2] += 1
             # After looping over all tiles of image, normalize the scores and bilinear interpolation to orignal image size
             datascale /= (countscale + eps)
@@ -147,11 +153,11 @@ def test(args):
         print(np.mean(correct_len[indexes_to_avg]/mask1_len[indexes_to_avg]))
 
         decoded = testdata.decode_segmap(pred)
-        pickle.dump(np.transpose(np.array(imgr, dtype=np.uint8), [2,0,1]), open( "results/saved_test_images/"+str(f_no)+"_input.p", "wb"))
-        pickle.dump(np.transpose(decoded,[2,0,1]),open( "results/saved_test_images/"+str(f_no)+"_output.p", "wb" ) )
-        pickle.dump(np.transpose(testdata.decode_segmap(lbl),[2,0,1]),open("results/saved_test_images/"+str(f_no)+"_target.p", "wb"))
+        pickle.dump(np.transpose(np.array(imgr, dtype=np.uint8), [2,0,1]), open(folder_name+"/saved_test_images/"+str(f_no)+"_input.p", "wb"))
+        pickle.dump(np.transpose(decoded,[2,0,1]),open(folder_name+"/saved_test_images/"+str(f_no)+"_output.p", "wb" ) )
+        pickle.dump(np.transpose(testdata.decode_segmap(lbl),[2,0,1]),open(folder_name+"/saved_test_images/"+str(f_no)+"_target.p", "wb"))
 
-    sio.savemat("results/cm.mat",{'cm':cm})
+    sio.savemat(folder_name+"/cm.mat",{'cm':cm})
 
 
 if __name__ == '__main__':

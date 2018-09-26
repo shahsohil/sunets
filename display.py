@@ -7,7 +7,7 @@ import time
 
 
 def main(args):
-    vis = visdom.Visdom(port=6008)
+    vis = visdom.Visdom(port=8097)
 
     losses = pickle.load( open( "results/saved_loss.p", "rb" ) )
     x=np.squeeze(np.asarray(losses["X"]))

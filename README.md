@@ -113,7 +113,7 @@ python train_seg.py [-h] [--arch [ARCH]] [--model_path MODEL_PATH]
 ```
 For example, one can start fine-tuning on pascal VOC2012 data using
 ```angular2html
-python train.py --arch sunet7128 --dataset sbd --batch_size 22 --iter_size 1 --n_epoch 90 --l_rate 0.0002 --momentum 0.95 --wd 1e-4 --optim SGD --img_rows 512 --img_cols 512
+python train.py --arch sunet7128 --dataset sbd --batch_size 22 --iter_size 1 --n_epoch 90 --l_rate 0.0002 --momentum 0.95 --wd 1e-4 --optim SGD --img_rows 512 --img_cols 512 --ost 16
 ```
 
 **To validate the model at multiple scales:**
@@ -128,10 +128,11 @@ python test_multiscale.py [-h] [--arch [ARCH]] [--model_path [MODEL_PATH]]
   --dataset             Dataset to use ['sbd, cityscapes etc']
   --img_rows            Height of the Crop size             
   --img_cols            Width of the Crop size
+  --ost                 Output stride to use ['32, 16, 8 etc']
 ```
 For example, one can validate on pascal VOC2012 validation data using
 ```angular2html
-python test_multiscale.py --arch sunet7128 --dataset sbd --model_path /path/to/checkpoint --img_rows 512 --img_cols 512
+python test_multiscale.py --arch sunet7128 --dataset sbd --model_path /path/to/checkpoint --img_rows 512 --img_cols 512 --ost 16
 ```
 
 **To evaluate the model on custom images(s):**
@@ -147,10 +148,11 @@ python evaluate_pascal.py [-h] [--arch [ARCH]] [--model_path [MODEL_PATH]]
   --out_path            Path of the output segmap. Arranged according to PASCAL server requirements.             
   --coco                Trained with external data (coco) ?
   --split               val or test split
+  --ost                 Output stride to use ['32, 16, 8 etc']
 ```
 For example, one can evaluate on pascal VOC2012 test data using
 ```angular2html
-python test_multiscale.py --arch sunet7128 --dataset sbd --model_path /path/to/checkpoint --img_rows 512 --img_cols 512 --split val --img_path /path/to/images --out_path /path/to/output_folder
+python evaluate_pascal.py --arch sunet7128 --dataset sbd --model_path /path/to/checkpoint --img_rows 512 --img_cols 512 --split val --img_path /path/to/images --out_path /path/to/output_folder --ost 16
 ```
 
 **To view the results:**
@@ -160,7 +162,7 @@ Launch [visdom](https://github.com/facebookresearch/visdom#launch) by running (i
 python -m visdom.server
 python display.py [--images]
 ```
-The 'images' option will also additionally display few validation images.
+The 'images' option will additionally display few validation images.
 
 ## Acknowledgements ##
 

@@ -15,6 +15,8 @@ from ptsemseg.models import get_model
 from ptsemseg.loader import get_loader
 from ptsemseg import get_data_path
 
+# import pdb; pdb.set_trace()
+
 def train(args):
     global n_classes
 
@@ -24,6 +26,7 @@ def train(args):
     torch.manual_seed(args.manualSeed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.manualSeed)
+        torch.backends.cudnn.enabled = True
         cudnn.benchmark = True
 
     # Set up results folder
@@ -117,10 +120,7 @@ def train(args):
         scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda1]*numgroups, last_epoch=epochs_done*n_iters_per_epoch)
     else:
         # Here we simply restart the training
-        if args.T0:
-            total_iters = args.T0 * n_iters_per_epoch
-        else:
-            total_iters = ((args.n_epoch - epochs_done) * n_iters_per_epoch)
+        total_iters = ((args.n_epoch - epochs_done) * n_iters_per_epoch)
         lambda1 = lambda step: 0.5 + 0.5 * math.cos(np.pi * step / total_iters)
         scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=[lambda1]*numgroups)
 
@@ -144,7 +144,7 @@ def train(args):
         steps_test=0
 
         trainmodel(model, optimizer, trainloader, epoch, scheduler, traindata)
-        valmodel(model, valloader, epoch)
+        valmodel(model, valloader, epoch, valdata)
 
         # save the model every 10 epochs
         if (epoch+1) % 10 == 0 or epoch == args.n_epoch-1:
@@ -246,7 +246,7 @@ def trainmodel(model, optimizer, trainloader, epoch, scheduler, data):
         totalclasswise_gtpixels += classwise_gtpixels.sum(0).data.cpu().numpy()
         totalclasswise_predpixels += classwise_predpixels.sum(0).data.cpu().numpy()
 
-        print("Epoch [%d/%d] Loss: %.4f" % (epoch + 1, args.n_epoch, losses.sum().data[0]))
+        print("Epoch [%d/%d] Loss: %.4f" % (epoch + 1, args.n_epoch, losses.sum().item()))
 
         if (i+1) % args.iter_size == 0:
             scheduler.step()
@@ -262,7 +262,7 @@ def trainmodel(model, optimizer, trainloader, epoch, scheduler, data):
                         open("results/saved_train_images/" + str(epoch) + "_" + str(i) + "_target.p", "wb"))
 
 
-def valmodel(model, valloader, epoch):
+def valmodel(model, valloader, epoch, data):
     global l_avg_test, totalclasswise_pixel_acc_test, totalclasswise_gtpixels_test, totalclasswise_predpixels_test
     global steps_test
 
@@ -296,7 +296,6 @@ def valmodel(model, valloader, epoch):
 
             pickle.dump(np.transpose(data.decode_segmap(lbls_test[0].numpy()), [2, 0, 1]),
                         open("results/saved_val_images/" + str(epoch) + "_" + str(i) + "_target.p", "wb"))
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparams')

@@ -8,12 +8,12 @@ from sklearn.metrics import confusion_matrix
 class cross_entropy2d(nn.Module):
     def __init__(self, weight=None, size_average=True, ignore=-100):
         super(cross_entropy2d, self).__init__()
-        self.nll_loss = nn.NLLLoss2d(weight=weight, size_average=size_average, ignore_index=ignore)
+        self.nll_loss = nn.NLLLoss(weight=weight, size_average=size_average, ignore_index=ignore)
         self.ignore = ignore
 
     def forward(self, input, target, th=1.0):
-        log_p = F.log_softmax(input)
-        if th < 1: # This is done while using Hardmining. Not use for our model training
+        log_p = F.log_softmax(input, dim=1)
+        if th < 1: # This is done while using Hardmining. Not used for our model training
             mask = F.softmax(input, dim=1) > th
             mask = mask.data
             new_target = target.data.clone()
@@ -22,13 +22,11 @@ class cross_entropy2d(nn.Module):
             indx = indx.squeeze(1)
             mod_target = target.clone()
             mod_target[indx] = self.ignore
+            target = mod_target
 
-        if th < 1:
-            loss = self.nll_loss(log_p, mod_target)
-            total_valid_pixel = torch.sum(mod_target.data != self.ignore)
-        else:
-            loss = self.nll_loss(log_p, target)
-            total_valid_pixel = torch.sum(target.data != self.ignore)
+        loss = self.nll_loss(log_p, target)
+        total_valid_pixel = torch.sum(target.data != self.ignore)
+
         return loss, Variable(torch.FloatTensor([total_valid_pixel]).cuda())
 
 

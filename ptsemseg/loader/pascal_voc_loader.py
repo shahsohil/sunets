@@ -163,7 +163,7 @@ class pascalVOCLoader(data.Dataset):
 
     def encode_segmap(self, mask):
         mask = mask.astype(int)
-        label_mask = np.zeros((mask.shape[0], mask.shape[1]), dtype=np.int16)
+        label_mask = np.ones((mask.shape[0], mask.shape[1]), dtype=np.int16)*self.ignore_index
         for i, label in enumerate(self.get_pascal_labels()):
             label_mask[np.all(mask == np.array(label).reshape(1,1,3), axis=2)] = i
         label_mask = label_mask.astype(int)
